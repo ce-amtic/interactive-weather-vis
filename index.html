@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Seattle Weather Explorer | 作业 3 交互式可视化</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="styles/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero__eyebrow">作业 3 · 交互式可视化</div>
+        <div class="hero__content">
+          <div>
+            <h1 id="page-title">Seattle Weather Explorer</h1>
+            <p class="hero__lead">
+              探索 2012-2015 年西雅图每日天气记录，观察季节变化、天气类型分布，以及气温、降水和风速之间的关系。
+            </p>
+          </div>
+          <aside class="hero__note" aria-label="项目摘要">
+            <strong>核心问题</strong>
+            <span>西雅图不同年份、月份和天气类型下的气象指标是否呈现稳定的季节性模式？</span>
+          </aside>
+        </div>
+      </section>
+
+      <section class="control-panel" aria-label="交互控制面板">
+        <div class="control-group">
+          <label class="control-label" for="metric-select">主图指标</label>
+          <select id="metric-select">
+            <option value="temp_max">最高气温</option>
+            <option value="temp_min">最低气温</option>
+            <option value="precipitation">降水量</option>
+            <option value="wind">风速</option>
+          </select>
+        </div>
+
+        <fieldset class="control-group control-group--wide">
+          <legend class="control-label">年份筛选</legend>
+          <div class="chip-row" id="year-controls">
+            <label class="chip">
+              <input type="radio" name="year" value="all" checked />
+              <span>全部</span>
+            </label>
+            <label class="chip">
+              <input type="radio" name="year" value="2012" />
+              <span>2012</span>
+            </label>
+            <label class="chip">
+              <input type="radio" name="year" value="2013" />
+              <span>2013</span>
+            </label>
+            <label class="chip">
+              <input type="radio" name="year" value="2014" />
+              <span>2014</span>
+            </label>
+            <label class="chip">
+              <input type="radio" name="year" value="2015" />
+              <span>2015</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="control-group control-group--wide">
+          <legend class="control-label">天气类型</legend>
+          <div class="chip-row" id="weather-controls">
+            <label class="chip chip--sun">
+              <input type="checkbox" name="weather" value="sun" checked />
+              <span>sun</span>
+            </label>
+            <label class="chip chip--rain">
+              <input type="checkbox" name="weather" value="rain" checked />
+              <span>rain</span>
+            </label>
+            <label class="chip chip--fog">
+              <input type="checkbox" name="weather" value="fog" checked />
+              <span>fog</span>
+            </label>
+            <label class="chip chip--drizzle">
+              <input type="checkbox" name="weather" value="drizzle" checked />
+              <span>drizzle</span>
+            </label>
+            <label class="chip chip--snow">
+              <input type="checkbox" name="weather" value="snow" checked />
+              <span>snow</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="control-actions">
+          <button id="select-all-weather" type="button">全选天气</button>
+          <button id="clear-brush" type="button">清除选择</button>
+        </div>
+      </section>
+
+      <section class="stats-grid" aria-label="当前筛选摘要">
+        <article class="stat-card">
+          <span class="stat-card__label">记录天数</span>
+          <strong id="stat-days">-</strong>
+        </article>
+        <article class="stat-card">
+          <span class="stat-card__label">平均最高气温</span>
+          <strong id="stat-temp">-</strong>
+        </article>
+        <article class="stat-card">
+          <span class="stat-card__label">有降水天数</span>
+          <strong id="stat-rain-days">-</strong>
+        </article>
+        <article class="stat-card">
+          <span class="stat-card__label">最常见天气</span>
+          <strong id="stat-dominant">-</strong>
+        </article>
+      </section>
+
+      <section class="chart-card" aria-labelledby="chart-title">
+        <div class="chart-card__header">
+          <div>
+            <h2 id="chart-title">多视图可视化</h2>
+            <p>
+              在右下角散点图中拖拽选择某个气温-降水区间，主时间序列图与月度分布图会同步更新；点击空白处或使用按钮可清除选择。
+            </p>
+          </div>
+          <div id="status-pill" class="status-pill">正在加载数据...</div>
+        </div>
+        <div id="vis" class="vis-shell" role="img" aria-label="西雅图天气交互式可视化图表"></div>
+      </section>
+
+      <footer class="page-footer">
+        数据来源：
+        <a href="https://vega.github.io/vega-lite/data/seattle-weather.csv">Vega-Lite Seattle Weather Dataset</a>
+        ，原始数据来自 NOAA。项目使用 Vega-Lite 与 Vega-Embed 构建。
+      </footer>
+    </main>
+
+    <script src="src/app.js"></script>
+  </body>
+</html>
