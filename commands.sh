@@ -22,7 +22,7 @@ python_bin() {
 
 validate_files() {
   local missing=0
-  for path in index.html src/app.js styles/style.css data/seattle-weather.csv report.md README.md; do
+  for path in index.html src/app.js styles/style.css data/seattle-weather.csv .nojekyll; do
     if [ ! -f "$path" ]; then
       echo "Missing required file: $path" >&2
       missing=1
@@ -39,7 +39,7 @@ case "${1:-}" in
     validate_files
     rm -rf dist
     mkdir -p dist
-    cp -R index.html README.md report.md data src styles dist/
+    cp -R index.html .nojekyll data src styles dist/
     touch dist/.nojekyll
     echo "Static site copied to dist/."
     ;;
@@ -85,7 +85,7 @@ case "${1:-}" in
       git remote add origin "$GITHUB_REMOTE_URL"
     fi
 
-    git add index.html README.md report.md commands.sh data src styles .gitignore
+    git add index.html .nojekyll commands.sh data src styles .gitignore
 
     if git diff --cached --quiet; then
       echo "No local changes to commit. Pushing current main branch."
