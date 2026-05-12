@@ -175,7 +175,6 @@ function tooltipFields(metricKey) {
 
 function buildSpec(rows, metricKey) {
   const metric = METRICS[metricKey];
-  const brushFilter = { filter: { param: "tempBrush", empty: true } };
 
   if (!rows.length) {
     return {
@@ -195,17 +194,15 @@ function buildSpec(rows, metricKey) {
   const mainChart = {
     title: {
       text: `每日天气时间序列：${metric.label}`,
-      subtitle: "颜色表示天气类型；右下角选择后，本图仅显示被选中的气温-降水区间。",
+      subtitle: "右下角框选后，框内数据保持天气颜色，其余数据会以灰色淡化显示。",
       anchor: "start"
     },
     width: 1040,
     height: 310,
-    transform: [brushFilter],
     mark: {
       type: "point",
       filled: true,
       size: 43,
-      opacity: 0.68,
       stroke: "#173c3d",
       strokeWidth: 0.25
     },
@@ -222,7 +219,18 @@ function buildSpec(rows, metricKey) {
         title: metric.title,
         scale: { zero: metric.zero, nice: true }
       },
-      color: commonColorEncoding(),
+      color: {
+        condition: {
+          param: "tempBrush",
+          empty: true,
+          ...commonColorEncoding()
+        },
+        value: "#c8cfcd"
+      },
+      opacity: {
+        condition: { param: "tempBrush", empty: true, value: 0.76 },
+        value: 0.18
+      },
       tooltip: tooltipFields(metricKey)
     }
   };
@@ -230,48 +238,80 @@ function buildSpec(rows, metricKey) {
   const monthlyChart = {
     title: {
       text: "月度天气类型分布",
-      subtitle: "统计当前筛选与选择范围内各月份的天气天数。",
+      subtitle: "灰色背景显示当前筛选下的全部天数，彩色条突出框选范围内的数据。",
       anchor: "start"
     },
     width: 500,
     height: 280,
-    transform: [
-      brushFilter,
+    layer: [
       {
-        aggregate: [{ op: "count", as: "days" }],
-        groupby: ["month", "month_name", "month_order", "weather"]
+        transform: [
+          {
+            aggregate: [{ op: "count", as: "days" }],
+            groupby: ["month", "month_name", "month_order"]
+          }
+        ],
+        mark: { type: "bar", cornerRadiusTopLeft: 3, cornerRadiusTopRight: 3, color: "#d2d8d6", opacity: 0.45 },
+        encoding: {
+          x: {
+            field: "month_name",
+            type: "ordinal",
+            title: "月份",
+            sort: { field: "month_order", order: "ascending" },
+            axis: { labelAngle: 0 }
+          },
+          y: {
+            field: "days",
+            type: "quantitative",
+            title: "天数",
+            scale: { nice: true }
+          },
+          tooltip: [
+            { field: "month_name", type: "ordinal", title: "月份" },
+            { field: "days", type: "quantitative", title: "当前筛选全部天数" }
+          ]
+        }
+      },
+      {
+        transform: [
+          { filter: { param: "tempBrush", empty: true } },
+          {
+            aggregate: [{ op: "count", as: "selected_days" }],
+            groupby: ["month", "month_name", "month_order", "weather"]
+          }
+        ],
+        mark: { type: "bar", cornerRadiusTopLeft: 3, cornerRadiusTopRight: 3, opacity: 0.9 },
+        encoding: {
+          x: {
+            field: "month_name",
+            type: "ordinal",
+            title: "月份",
+            sort: { field: "month_order", order: "ascending" },
+            axis: { labelAngle: 0 }
+          },
+          y: {
+            field: "selected_days",
+            type: "quantitative",
+            title: "天数",
+            stack: "zero"
+          },
+          color: commonColorEncoding(),
+          order: { field: "weather", sort: "ascending" },
+          tooltip: [
+            { field: "month_name", type: "ordinal", title: "月份" },
+            { field: "weather", type: "nominal", title: "天气类型" },
+            { field: "selected_days", type: "quantitative", title: "框选范围内天数" }
+          ]
+        }
       }
-    ],
-    mark: { type: "bar", cornerRadiusTopLeft: 3, cornerRadiusTopRight: 3 },
-    encoding: {
-      x: {
-        field: "month_name",
-        type: "ordinal",
-        title: "月份",
-        sort: { field: "month_order", order: "ascending" },
-        axis: { labelAngle: 0 }
-      },
-      y: {
-        field: "days",
-        type: "quantitative",
-        title: "天数",
-        stack: "zero"
-      },
-      color: commonColorEncoding(),
-      order: { field: "weather", sort: "ascending" },
-      tooltip: [
-        { field: "month_name", type: "ordinal", title: "月份" },
-        { field: "weather", type: "nominal", title: "天气类型" },
-        { field: "days", type: "quantitative", title: "天数" }
-      ]
-    }
+    ]
   };
 
   const scatterChart = {
     name: "scatter_view",
     title: {
       text: "气温与降水关系",
-      subtitle: "拖拽选择点云区域，可联动过滤上方与左侧图表。",
+      subtitle: "拖拽框选点云区域，框内点保持原色，框外点以灰色淡化显示。",
       anchor: "start"
     },
     width: 500,
@@ -280,7 +320,6 @@ function buildSpec(rows, metricKey) {
       type: "point",
       filled: true,
       size: 48,
-      opacity: 0.7,
       stroke: "#173c3d",
       strokeWidth: 0.25
     },
@@ -297,7 +336,18 @@ function buildSpec(rows, metricKey) {
         title: "降水量（mm）",
         scale: { zero: true, nice: true }
       },
-      color: commonColorEncoding(),
+      color: {
+        condition: {
+          param: "tempBrush",
+          empty: true,
+          ...commonColorEncoding()
+        },
+        value: "#c8cfcd"
+      },
+      opacity: {
+        condition: { param: "tempBrush", empty: true, value: 0.76 },
+        value: 0.18
+      },
       tooltip: [
         { field: "date_label", type: "nominal", title: "日期" },
         { field: "weather_cn", type: "nominal", title: "天气" },
